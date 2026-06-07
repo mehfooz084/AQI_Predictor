@@ -10,6 +10,9 @@ A Machine Learning-powered web application that predicts Air Quality Index (AQI)
 - Interactive Web Interface
 - Flask Backend Integration
 
+## Live Demo 
+- https://aqi-predictor-20g0.onrender.com/
+
 ## Tech Stack
 - Python
 - Flask
