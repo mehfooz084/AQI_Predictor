@@ -1,14 +1,15 @@
 # 🌍 Air Quality Index (AQI) Predictor
 
-This project predicts AQI from pollutant concentrations using a Random Forest model trained on the provided dataset. The web application is intended as a demonstration of the machine learning pipeline and should not be interpreted as reproducing official live AQI values from external providers.
+This project predicts the Air Quality Index (AQI) from pollutant concentrations using a Random Forest Regression model. It demonstrates the complete machine learning pipeline, including data preprocessing, exploratory data analysis, feature engineering, model training, evaluation, and deployment using Flask. Users can input pollutant concentrations to receive a predicted AQI, air quality category, and health advisory.
 
 ## Features
-- AQI Prediction using Random Forest Regression
-- Real-time AQI Calculation
-- Health Advisory System
-- AQI Category Classification
-- Interactive Web Interface
-- Flask Backend Integration
+-Machine Learning–based AQI Prediction (Random Forest Regression)
+-Data Preprocessing & Exploratory Data Analysis
+-Feature Importance Analysis
+-AQI Category Classification
+-Personalized Health Advisory
+-Interactive Flask Web Application
+-Trained Model Serialization (.pkl)
 
 ## Live Demo 
 - https://aqipredictor-production-c30c.up.railway.app/
