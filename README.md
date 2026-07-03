@@ -1,6 +1,6 @@
 # 🌍 Air Quality Index (AQI) Predictor
 
-A Machine Learning-powered web application that predicts Air Quality Index (AQI) using pollutant concentrations and provides air quality categories with health recommendations.
+This project predicts AQI from pollutant concentrations using a Random Forest model trained on the provided dataset. The web application is intended as a demonstration of the machine learning pipeline and should not be interpreted as reproducing official live AQI values from external providers.
 
 ## Features
 - AQI Prediction using Random Forest Regression
