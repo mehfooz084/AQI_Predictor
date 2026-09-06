@@ -12,7 +12,7 @@ This project predicts the Air Quality Index (AQI) from pollutant concentrations 
 - Trained Model Serialization (.pkl)
 
 ## Live Demo 
--https://aqi-predictor-steel.vercel.app/
+-https://aqi-predictor-gzsv.vercel.app/
 ## Tech Stack
 - Python
 - Flask
