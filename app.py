@@ -41,6 +41,9 @@ def predict():
     except (KeyError, ValueError, TypeError):
         return jsonify({"error": "Invalid input. Provide pm25, pm10, co, no as numbers."}), 400
 
+    # CO from frontend is in mg/m³; divide by 1000 to match model's training scale
+    co = co / 1000
+
     features = np.array([[pm25, co, no, pm10]])   # match training column order
     aqi = float(model.predict(features)[0])
 
