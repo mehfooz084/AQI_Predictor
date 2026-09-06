@@ -251,3 +251,137 @@ document.querySelectorAll('input[type="number"]').forEach(input => {
     if (e.key === 'Enter') predictAQI();
   });
 });
+
+/* ── Location & Open-Meteo Integration ───────────────────── */
+const manualLocInput = $('manual-loc-input');
+const locSearchBtn = $('loc-search-btn');
+const locMyBtn = $('loc-my-btn');
+const locManualBtn = $('loc-manual-btn');
+const locCityName = $('loc-city-name');
+const locCoords = $('loc-coords');
+const locTime = $('loc-time');
+const locErrorMsg = $('loc-error-msg');
+const locErrorText = $('loc-error-text');
+const locLoading = $('loc-loading');
+
+function showLocError(msg) {
+  locErrorText.textContent = msg;
+  locErrorMsg.style.display = 'flex';
+}
+
+function clearLocError() {
+  locErrorMsg.style.display = 'none';
+}
+
+function setLocLoading(active) {
+  locLoading.style.display = active ? 'flex' : 'none';
+  if (locSearchBtn) locSearchBtn.disabled = active;
+  if (locMyBtn) locMyBtn.disabled = active;
+}
+
+function updateLocDisplay(name, lat, lon) {
+  locCityName.textContent = name || 'Unknown';
+  locCoords.textContent = `Lat: ${lat.toFixed(2)} · Lon: ${lon.toFixed(2)}`;
+  locTime.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+async function fetchAirQuality(lat, lon) {
+  const aqiRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide`);
+  if (!aqiRes.ok) throw new Error('Failed to fetch air quality data.');
+  const aqiData = await aqiRes.json();
+
+  const now = new Date();
+  let idx = 0;
+  if (aqiData.hourly && aqiData.hourly.time) {
+    idx = aqiData.hourly.time.length - 1;
+    for (let i = 0; i < aqiData.hourly.time.length; i++) {
+      if (new Date(aqiData.hourly.time[i]) >= now) {
+        idx = i;
+        break;
+      }
+    }
+  }
+
+  const pm10 = aqiData.hourly.pm10[idx] || 0;
+  const pm25 = aqiData.hourly.pm2_5[idx] || 0;
+  const co_ug = aqiData.hourly.carbon_monoxide[idx] || 0;
+  const co_mg = co_ug / 1000;
+  const no2 = aqiData.hourly.nitrogen_dioxide[idx] || 0;
+
+  $('pm25').value = pm25.toFixed(1);
+  $('pm10').value = pm10.toFixed(1);
+  $('co').value = co_mg.toFixed(2);
+  $('no').value = no2.toFixed(1);
+}
+
+// ── My Location button ──
+if (locMyBtn) {
+  locMyBtn.addEventListener('click', async () => {
+    clearLocError();
+    setLocLoading(true);
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported by your browser.'));
+        } else {
+          navigator.geolocation.getCurrentPosition(resolve, err => {
+            reject(new Error('Location access denied. Try "Enter city name" instead.'));
+          });
+        }
+      });
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      updateLocDisplay('My Location', lat, lon);
+      await fetchAirQuality(lat, lon);
+    } catch (err) {
+      showLocError(err.message);
+    } finally {
+      setLocLoading(false);
+    }
+  });
+}
+
+// ── Search button (manual city entry) ──
+async function searchCity() {
+  clearLocError();
+  const q = manualLocInput.value.trim();
+  if (!q) {
+    showLocError('Please enter a city name.');
+    manualLocInput.focus();
+    return;
+  }
+  setLocLoading(true);
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&format=json`);
+    if (!geoRes.ok) throw new Error('Failed to fetch location coordinates.');
+    const geoData = await geoRes.json();
+    if (!geoData.results || geoData.results.length === 0) throw new Error(`Location "${q}" not found.`);
+    const loc = geoData.results[0];
+    updateLocDisplay(loc.name, loc.latitude, loc.longitude);
+    await fetchAirQuality(loc.latitude, loc.longitude);
+  } catch (err) {
+    showLocError(err.message);
+  } finally {
+    setLocLoading(false);
+  }
+}
+
+if (locSearchBtn) {
+  locSearchBtn.addEventListener('click', searchCity);
+}
+
+// ── Manual Entry button: focus the search input ──
+if (locManualBtn) {
+  locManualBtn.addEventListener('click', () => {
+    manualLocInput.focus();
+    manualLocInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
+// Enter key in location input triggers search
+if (manualLocInput) {
+  manualLocInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchCity();
+  });
+}
+
